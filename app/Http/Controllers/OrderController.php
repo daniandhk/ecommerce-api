@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\OrdersExport;
 use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
 
 class OrderController extends Controller
 {
@@ -228,5 +230,10 @@ class OrderController extends Controller
             'message' => 'List Data Order',
             'data'    => $data
         ], 200);
+    }
+
+    public function export()
+    {
+        return Excel::download(new OrdersExport, 'orders.xlsx');
     }
 }

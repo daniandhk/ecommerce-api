@@ -42,6 +42,7 @@ Route::middleware(['auth:api', 'role'])->group(function () {
         Route::put('/orders/{id}', [OrderController::class, 'update']);
         Route::delete('/orders/{id}', [OrderController::class, 'destroy']);
         Route::get('/user/{id}/orders', [OrderController::class, 'getByUserId']);
+        Route::get('/export/orders', [OrderController::class, 'export']);
     });
 });
 
