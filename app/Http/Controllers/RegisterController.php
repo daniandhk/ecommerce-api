@@ -13,7 +13,7 @@ class RegisterController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name'      => 'required',
-            'email'     => 'required|email|unique:users',
+            'email'     => 'required|email',
             'password'  => 'required|min:8|confirmed'
         ]);
 
@@ -21,16 +21,41 @@ class RegisterController extends Controller
             return response()->json($validator->errors(), 400);
         }
 
-        $user = User::create([
-            'name'      => $request->name,
-            'email'     => $request->email,
-            'password'  => Hash::make($request->password)
-        ]);
+        $user = User::withoutTrashed()->where('email', $request->email)->first();
+        if ($user) {
+            $user->restore();
 
-        if ($request->has('role')) {
-            $user->role()->create([
-                'role' => $request->role
+            $user->update([
+                'name'      => $request->name,
+                'email'     => $request->email,
+                'password'  => Hash::make($request->password)
             ]);
+
+            if ($request->has('role')) {
+                $user->role()->update([
+                    'role' => $request->role
+                ]);
+            } else {
+                $user->role()->update([
+                    'role' => 'user'
+                ]);
+            }
+        } else {
+            $user = User::create([
+                'name'      => $request->name,
+                'email'     => $request->email,
+                'password'  => Hash::make($request->password)
+            ]);
+
+            if ($request->has('role')) {
+                $user->role()->create([
+                    'role' => $request->role
+                ]);
+            } else {
+                $user->role()->create([
+                    'role' => 'user'
+                ]);
+            }
         }
 
         return response()->json([

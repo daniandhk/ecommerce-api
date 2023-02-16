@@ -62,7 +62,7 @@ class ProductController extends Controller
     {
         //set validation
         $validator = Validator::make($request->all(), [
-            'name'   => 'required|unique:products',
+            'name'   => 'required',
             'description' => 'required',
             'price' => 'required',
             'quantity' => 'required',
@@ -73,22 +73,44 @@ class ProductController extends Controller
             return response()->json($validator->errors(), 400);
         }
 
-        //save to database
-        $data = Product::create([
-            'name'     => $request->name,
-            'description'   => $request->description,
-            'price'     => $request->price,
-            'quantity'   => $request->quantity,
-        ]);
+        //find product by name with soft delete
+        $product = Product::withTrashed()->where('name', $request->name)->first();
 
-        //success save to database
-        if ($data) {
+        if ($product) {
+            //restore soft delete
+            $product->restore();
 
+            //update product
+            $product->update([
+                'description' => $request->description,
+                'price' => $request->price,
+                'quantity' => $request->quantity,
+            ]);
+
+            //success update product
             return response()->json([
                 'success' => true,
-                'message' => 'Product Created',
-                'data'    => $data
-            ], 201);
+                'message' => 'Product Updated',
+                'data'    => $product
+            ], 200);
+        } else {
+            //save to database
+            $data = Product::create([
+                'name'     => $request->name,
+                'description'   => $request->description,
+                'price'     => $request->price,
+                'quantity'   => $request->quantity,
+            ]);
+
+            //success save to database
+            if ($data) {
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Product Created',
+                    'data'    => $data
+                ], 201);
+            }
         }
 
         //failed save to database

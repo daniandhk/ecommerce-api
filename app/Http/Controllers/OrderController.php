@@ -140,6 +140,20 @@ class OrderController extends Controller
             ], 404);
         }
 
+        try {
+            $product = Product::findOrfail($order->product_id);
+            if ($request->status == 'declined') {
+                $product->update([
+                    'quantity' => $product->quantity + $order->quantity
+                ]);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Product Not Found',
+            ], 404);
+        }
+
         $order->update([
             'status'   => $request->status,
         ]);
@@ -172,6 +186,20 @@ class OrderController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Order Not Found',
+            ], 404);
+        }
+
+        try {
+            $product = Product::findOrfail($order->product_id);
+            if ($order->status == 'pending') {
+                $product->update([
+                    'quantity' => $product->quantity + $order->quantity
+                ]);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Product Not Found',
             ], 404);
         }
 
