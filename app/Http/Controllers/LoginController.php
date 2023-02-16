@@ -31,13 +31,11 @@ class LoginController extends Controller
 
         $userRole = $user->role()->first();
         if ($userRole) {
-            $user->role = $userRole->role;
             $this->scope = $userRole->role;
         } else {
             $user->role()->create([
                 'role' => 'user'
             ]);
-            $user->role = 'user';
             $this->scope = 'user';
         }
         $token = $user->createToken($user->email . '-' . now(), [$this->scope]);
@@ -46,6 +44,7 @@ class LoginController extends Controller
             'success' => true,
             'message' => 'Login Success!',
             'data'    => $user,
+            'role'    => $userRole->role,
             'token'   => $token->accessToken,
         ]);
     }
